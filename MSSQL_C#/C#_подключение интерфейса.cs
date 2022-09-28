@@ -1,3 +1,4 @@
+// Выполнял по методичке на втором курсе. Могу прислать результат выполнения проекта в скриншотах.
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
