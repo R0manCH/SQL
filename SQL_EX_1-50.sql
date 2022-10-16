@@ -247,7 +247,19 @@ FROM Classes
 WHERE bore >= 16
 
 --32(3)
-
+SELECT country, CAST(AVG(POWER(bore,3)/2) AS dec(6,2)) AS weight
+FROM 
+(
+SELECT name, country, bore, c.class
+FROM Classes c
+JOIN Ships s ON c.class = s.class
+UNION ALL
+SELECT DISTINCT ship, country, bore, c.class
+FROM Classes c
+JOIN Outcomes o ON c.class = o.ship
+WHERE ship NOT IN (SELECT name FROM Ships)
+) A
+GROUP BY country
 
 --33(1)
 SELECT ship
@@ -375,13 +387,86 @@ FROM Outcomes c
 WHERE ship LIKE '% % %'
 
 --46(2)
---На этом задании сайт перестал отвечать. Будет сделано позже.
+WITH ciss AS
+(
+SELECT s.name AS ship, displacement, numGuns
+FROM Ships s
+LEFT JOIN Classes c ON s.class = c.class
+UNION
+SELECT class AS ship, displacement, numGuns
+FROM Classes
+)
+SELECT o.ship, displacement, numGuns
+FROM Outcomes o
+LEFT JOIN ciss cs ON o.ship = cs.ship
+WHERE battle = 'Guadalcanal'
 
 --47(3)
+WITH T1 AS 
+( 
+SELECT country, COUNT(name) AS co
+FROM
+(
+SELECT name, country 
+FROM Classes c
+JOIN Ships s ON s.class = c.class
+UNION
+SELECT ship, country 
+FROM Classes c
+JOIN Outcomes o ON o.ship = c.class
+) FR1
+GROUP BY country
+),
 
+T2 AS 
+( 
+SELECT country, COUNT(name) AS co 
+FROM 
+( 
+SELECT name, country 
+FROM Classes c
+JOIN Ships s ON s.class = c.class
+WHERE name IN 
+(
+SELECT DISTINCT ship 
+FROM Outcomes 
+WHERE result = 'sunk'
+)
+UNION
+SELECT ship, country 
+FROM Classes c
+JOIN Outcomes o ON o.ship = c.class
+WHERE ship IN 
+(
+SELECT DISTINCT ship 
+FROM Outcomes
+WHERE result = 'sunk'
+)
+) FR2 
+GROUP BY country 
+)
+
+SELECT T1.country 
+FROM T1
+JOIN T2 ON T1.co = t2.co and t1.country = t2.country
 
 --48(2)
-
+WITH ciss AS
+(
+SELECT name, class 
+FROM Ships
+UNION
+SELECT class AS name, class
+FROM Classes
+)
+SELECT DISTINCT class
+FROM ciss
+WHERE name IN
+(
+SELECT ship
+FROM Outcomes
+WHERE result = 'sunk'
+)
 
 --49(1)
 SELECT name
